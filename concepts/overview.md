@@ -5,18 +5,18 @@ audience: public
 
 # Concepts Overview
 
-Quick tour of Infron: what it is, who it is for, and the main building blocks.
+Quick tour of Muxon: what it is, who it is for, and the main building blocks.
 
-## What Infron is
+## What Muxon is
 - **Muxon Core** is the control plane: API, orchestration, state, and provider abstractions.
-- **Infron Nexus** overlays enterprise features (additional providers, SSO options, observability) without forking the Core API.
+- **Muxon Nexus** overlays enterprise features (additional providers, SSO options, observability) without forking the Core API.
 - Built for **multi-tenant** operators who need guardrails for resource isolation and delegated access.
 
 ## Planes and runtime layout
 ```mermaid
 flowchart LR
     subgraph Clients
-        UI[Infron Web UI]
+        UI[Muxon Web UI]
         APIClients[API Clients]
     end
 

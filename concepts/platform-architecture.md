@@ -5,7 +5,7 @@ audience: public
 
 # Platform Architecture
 
-Explain how Infron is assembled and how control flows.
+Explain how Muxon is assembled and how control flows.
 
 ## Control plane services, APIs, and HATEOAS links
 
@@ -62,7 +62,7 @@ graph TD
 
 ## Provider abstraction and drivers
 
-Infron isolates provider specifics behind a common contract:
+Muxon isolates provider specifics behind a common contract:
 
 - **Provider Registry**: Selects the right driver based on provider type and tenant/project scope.
 - **Drivers**: Translate portable intents into provider APIs. Current drivers include libvirt (KVM), Proxmox, and a Kubernetes-like target for cluster-style scheduling.

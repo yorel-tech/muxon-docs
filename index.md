@@ -1,11 +1,11 @@
 ---
-title: Infron Documentation
+title: Muxon Documentation
 audience: public
 ---
 
-# Infron Documentation
+# Muxon Documentation
 
-Welcome to the Infron documentation for **Muxon Core** (OSS) and **Infron Nexus** (Enterprise).
+Welcome to the Muxon documentation for **Muxon Core** (OSS) and **Muxon Nexus** (Enterprise).
 
 ## What you can do here
 
@@ -26,7 +26,7 @@ Foundational ideas and platform architecture.
 
 | Document | Topic |
 |----------|-------|
-| [Overview](concepts/overview.md) | What Infron is and main building blocks |
+| [Overview](concepts/overview.md) | What Muxon is and main building blocks |
 | [Platform Architecture](concepts/platform-architecture.md) | Control plane services and data flow |
 | [Editions — Core vs Nexus](concepts/editions-core-vs-nexus.md) | Feature and deployment differences |
 | [Tenancy and Identity](concepts/tenancy-and-identity.md) | Tenants, projects, and identity |

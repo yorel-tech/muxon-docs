@@ -1,6 +1,6 @@
-# Install Infron Nexus (Enterprise)
+# Install Muxon Nexus (Enterprise)
 
-**Infron Nexus** is an enterprise add-on layered on top of **Muxon Core**. You should complete [Install Muxon Core](install-core.md) (or install Core as part of the same Helm release) before relying on Nexus-specific features.
+**Muxon Nexus** is an enterprise add-on layered on top of **Muxon Core**. You should complete [Install Muxon Core](install-core.md) (or install Core as part of the same Helm release) before relying on Nexus-specific features.
 
 This document assumes you have access to the **`muxon-nexus`** Helm chart and container images (enterprise build).
 
