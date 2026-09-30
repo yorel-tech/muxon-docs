@@ -36,7 +36,7 @@ On first start, the **bootstrap-initializer** runs before the backend services: 
 
 - **Docker Engine** 24+ and **Docker Compose** v2 (often `docker compose`).
 - On Linux, your user should be in the `docker` group *or* you run commands with `sudo`.
-- **OpenSSL** (optional) — used by `scripts/create-secrets.sh` to generate random secrets.
+- **OpenSSL** and **curl** — required by the Compose install script (`./install.sh`) to generate secrets and check health.
 
 Check:
 
@@ -75,7 +75,7 @@ This YAML file describes:
 
 Templates:
 
-- Docker: [compose/initial-config.yaml.template](../../compose/initial-config.yaml.template)
+- Docker: `compose/initial-config.yaml.template` inside the Compose install kit (or the `muxon-core` repository). The install script renders it to `initial-config.yaml`.
 - Kubernetes: generated from Helm `values.yaml`, or overridden with `helm install ... --set-file bootstrap.initialConfigYaml=./initial-config.yaml`
 
 ### Secrets (files, not environment variables)
@@ -86,80 +86,81 @@ Templates:
 
 ## Option A — Docker Compose
 
-Work from the **`muxon-core`** directory in this repository (paths in the compose file are relative to `compose/`).
+The preferred trial path is the **versioned Compose install kit** attached to the OSS GitHub Release. The kit is self-contained: you do not need a git checkout. It includes `install.sh` (guided install) and `INSTALL.md` (the same steps, run by hand).
 
-### Step 1 — Install Docker (if needed)
+### Download the release kit
+
+1. Open the [Muxon Core build releases](https://github.com/yorel-tech/muxon-core-build/releases).
+2. On the release for your version (for example `v1.2.3`), download `muxon-compose-install-1.2.3.tar.gz` or `muxon-compose-install-1.2.3.zip`. The Helm chart `muxon-core-1.2.3.tgz` is attached to the same release. Weekly image builds do not publish this kit.
+3. Unpack it and enter the directory:
+
+```bash
+tar -xzf muxon-compose-install-1.2.3.tar.gz
+cd muxon-compose-install-1.2.3
+```
+
+The `VERSION` file in the kit is the image tag Compose uses unless you override it. That tag matches the `core-services` image published for the release.
+
+### Guided install
+
+Install Docker Engine 24+ and Compose v2 first if you have not already:
 
 - **Ubuntu**: follow [Docker’s official install guide](https://docs.docker.com/engine/install/ubuntu/).
 - **Other OS**: see [Docker Engine overview](https://docs.docker.com/engine/install/).
 
-Start the Docker service and verify:
-
 ```bash
 sudo systemctl enable --now docker
 docker run --rm hello-world
+./install.sh
 ```
 
-### Step 2 — Create secret files
+Non-interactive example (bundled Postgres and Keycloak):
 
 ```bash
-cd muxon-core
+./install.sh --non-interactive \
+  --profile internal \
+  --admin-user admin@example.com
+```
+
+`./install.sh --help` lists flags. The script checks Docker, Compose v2, OpenSSL, and curl, creates `secrets/`, renders `initial-config.yaml` and the Keycloak realm import, starts Compose, and polls `http://127.0.0.1:8080/actuator/health`.
+
+### Manual install
+
+Follow **`INSTALL.md`** in the unpacked kit. It lists the same phases as the script: prerequisites, `./scripts/create-secrets.sh`, placeholder substitution, Compose up (internal or external), health check, and uninstall. Keep the shipped templates unchanged and write the runtime files the checklist names (`initial-config.yaml` at the kit root, and `compose/keycloak/realm-muxon-dev.runtime.json` for the bundled IdP).
+
+### Developer path (git checkout)
+
+From a `muxon-core` checkout, the same entrypoint and checklist live at the repository root (`./install.sh` and `INSTALL.md`). Compose paths are relative to `compose/`.
+
+To build a kit the way the release workflow does:
+
+```bash
+cd muxon-core-build
+VERSION=1.2.3 ./scripts/package-compose-install.sh
+```
+
+Equivalent manual commands from the `muxon-core` directory (or an unpacked kit):
+
+```bash
 ./scripts/create-secrets.sh
-```
-
-This creates `muxon-core/secrets/` with:
-
-- `muxon-passphrase`
-- `muxon-oidc-secret`
-- `muxon-db-password`
-- `keycloak-admin-password`
-
-**Important:** For bundled Keycloak, set `muxon-oidc-secret` to the **client secret** of the `muxon-api` client in your imported realm (see Keycloak admin console), or change the realm import to match your generated secret.
-
-### Step 3 — Prepare `initial-config.yaml`
-
-```bash
-cp compose/initial-config.yaml.template ../initial-config.yaml
-nano ../initial-config.yaml   # or any editor
-```
-
-- **Bundled Postgres + Keycloak** (next step uses `--profile internal`): use hostnames **`postgres`** and **`keycloak`** and the JDBC URL from the template.
-- **External services**: set `datasource.url` to your PostgreSQL URL and `system.idp.metadata.issuerUri` to your IdP issuer.
-
-### Step 4 — Start the stack
-
-**Bundled PostgreSQL and Keycloak:**
-
-```bash
-cd muxon-core
+./install.sh --render-only --non-interactive --admin-user admin@example.com
+export MUXON_VERSION="$(cat VERSION)"
 docker compose -f compose/muxon.yml --profile internal up -d
-```
-
-**Only core-services** (you already run Postgres and Keycloak elsewhere):
-
-```bash
-docker compose -f compose/muxon.yml up -d
-```
-
-Optional: set image tag:
-
-```bash
-export MUXON_VERSION=0.1.0
-docker compose -f compose/muxon.yml --profile internal up -d
-```
-
-### Step 5 — Verify
-
-```bash
 docker compose -f compose/muxon.yml ps
 curl -sS http://127.0.0.1:8080/actuator/health
 ```
 
-Check logs:
+External database and IdP (no bundled Postgres or Keycloak):
 
 ```bash
-docker compose -f compose/muxon.yml logs -f core-services
+./install.sh --non-interactive \
+  --profile external \
+  --admin-user admin@example.com \
+  --issuer-uri https://idp.example.com/realms/muxon \
+  --datasource-url jdbc:postgresql://db.example.com:5432/muxon
 ```
+
+That runs `docker compose -f compose/muxon.yml up -d` without `--profile internal`.
 
 ---
 
